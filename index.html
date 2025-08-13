@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MikMok - Concientización Social</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #000;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+            touch-action: pan-y;
+        }
+        
+        .container {
+            position: relative;
+            height: 100vh;
+            width: 100%;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .video-container {
+            height: 100vh;
+            width: 100%;
+            position: relative;
+            scroll-snap-align: start;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 500px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .video-player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+        }
+        
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 40%);
+            z-index: 1;
+        }
+        
+        .video-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 20px;
+            z-index: 2;
+        }
+        
+        .video-info {
+            margin-bottom: 60px;
+            width: 100%;
+        }
+        
+        .video-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .video-description {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            max-width: 90%;
+            line-height: 1.4;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+        
+        .hashtag {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+        
+        .hashtag:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .side-controls {
+            position: absolute;
+            right: 20px;
+            bottom: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            z-index: 5;
+        }
+        
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .control-item:active {
+            transform: scale(0.95);
+        }
+        
+        .control-icon {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .control-icon:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .control-icon i {
+            font-size: 24px;
+        }
+        
+        .control-icon.liked {
+            background: rgba(255, 0, 80, 0.3);
+        }
+        
+        .control-icon.liked i {
+            color: #ff0050;
+        }
+        
+        .control-count {
+            font-size: 0.8rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .profile-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            overflow: hidden;
+            margin-bottom: 5px;
+            position: relative;
+            transition: transform 0.3s;
+        }
+        
+        .profile-circle:hover {
+            transform: scale(1.1);
+        }
+        
+        .profile-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .logo {
+            position: absolute;
+            top: 30px;
+            left: 20px;
+            z-index: 10;
+            font-size: 1.8rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .logo span {
+            color: #ff0050;
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            z-index: 100;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #aaa;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: color 0.3s;
+            position: relative;
+        }
+        
+        .nav-item.active {
+            color: #fff;
+        }
+        
+        .nav-item i {
+            font-size: 1.4rem;
+            margin-bottom: 3px;
+        }
+        
+        .nav-item .notification {
+            position: absolute;
+            top: -5px;
+            right: 5px;
+            background: #ff0050;
+            color: white;
+            font-size: 0.7rem;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .record-btn {
+            background: linear-gradient(to right, #ff0050, #ff6a00);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 0, 80, 0.4);
+            z-index: 100;
+            transition: all 0.2s;
+        }
+        
+        .record-btn:active {
+            transform: translateX(-50%) scale(0.95);
+        }
+        
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            z-index: 1000;
+        }
+        
+        .progress {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #ff0050, #ff6a00);
+            transition: width 0.1s linear;
+        }
+        
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 10000;
+            transition: opacity 0.5s;
+        }
+        
+        .loading-logo {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+        
+        .loading-logo span {
+            color: #ff0050;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 5px solid #ff0050;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .no-scroll {
+            overflow: hidden;
+        }
+        
+        .creator {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .creator img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid #fff;
+            transition: transform 0.3s;
+        }
+        
+        .creator img:hover {
+            transform: scale(1.1);
+        }
+        
+        .creator-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .creator-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .creator-title {
+            font-size: 0.9rem;
+            color: #ddd;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .follow-btn {
+            background: #ff0050;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .follow-btn:hover {
+            background: #ff1a62;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255, 0, 80, 0.3);
+        }
+        
+        .follow-btn.following {
+            background: #333;
+            color: #ccc;
+        }
+        
+        .video-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 5;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .video-control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .video-control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+        
+        .current-time {
+            position: absolute;
+            bottom: 25px;
+            right: 20px;
+            font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 3px 8px;
+            border-radius: 10px;
+            z-index: 5;
+        }
+        
+        .volume-slider {
+            position: absolute;
+            right: -65px;
+            top: 50%;
+            transform: translateY(-50%) rotate(-90deg);
+            width: 100px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 5px;
+            padding: 5px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .volume-container:hover .volume-slider {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .video-stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #ddd;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .new-video-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ff0050;
+            color: white;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            z-index: 10;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+        
+        @media (max-width: 768px) {
+            .video-description {
+                max-width: 95%;
+            }
+            
+            .side-controls {
+                bottom: 150px;
+                right: 15px;
+            }
+            
+            .video-title {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        <div class="loading-logo">Mik<span>Mok</span></div>
+        <div class="spinner"></div>
+    </div>
+    
+    <div class="progress-bar">
+        <div class="progress" id="progress"></div>
+    </div>
+    
+    <div class="logo">
+        <i class="fas fa-globe-americas"></i>
+        Mik<span>Mok</span>
+    </div>
+    
+    <div class="container" id="container">
+        <!-- Video 1 -->
+        <div class="video-container">
+            <div class="video-wrapper">
+                <video class="video-player" autoplay muted loop playsinline>
+                    <source src="videos/video1.mp4" type="video/mp4">
+                </video>
+                <div class="video-overlay"></div>
+                <div class="video-content">
+                    <div class="creator">
+                        <img src="https://randomuser.me/api/portraits/women/32.jpg" alt="Creador">
+                    </div>
+                    
+                    <div class="video-info">
+                        <div class="video-title">bruh</div>
+                        <div class="video-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-eye"></i> 245K vistas
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-clock"></i> Hace 2 días
+                            </div>
+                        </div>
+                        <div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="side-controls">
+                <div class="control-item">
+                    <div class="profile-circle">
+                        <img src="https://randomuser.me/api/portraits/women/32.jpg" alt="Perfil">
+                    </div>
+                    <div class="new-video-indicator">NUEVO</div>
+                </div>
+                <div class="control-item">
+                    <div class="control-icon" id="like-btn-1">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <span class="control-count">24.5K</span>
+                </div>
+                <div class="control-item">
+                    <div class="control-icon">
+                        <i class="fas fa-comment"></i>
+                    </div>
+                    <span class="control-count">1.2K</span>
+                </div>
+                <div class="control-item">
+                    <div class="control-icon">
+                        <i class="fas fa-share"></i>
+                    </div>
+                    <span class="control-count">845</span>
+                </div>
+                <div class="control-item volume-container">
+                    <div class="control-icon">
+                        <i class="fas fa-volume-up"></i>
+                    </div>
+                    <input type="range" min="0" max="1" step="0.1" value="1" class="volume-slider" id="volume-1">
+                </div>
+            </div>
+            
+            <div class="video-controls">
+                <div class="video-control-btn" id="play-pause-1">
+                    <i class="fas fa-pause"></i>
+                </div>
+                <div class="video-control-btn" id="fullscreen-1">
+                    <i class="fas fa-expand"></i>
+                </div>
+            </div>
+            
+            <div class="current-time" id="time-1">0:15 / 0:30</div>
+        </div>
+        
+        <!-- Video 2 -->
+        <div class="video-container">
+            <div class="video-wrapper">
+                <video class="video-player" autoplay muted loop playsinline>
+                    <source src="videos/video2.mp4" type="video/mp4">
+                </video>
+                <div class="video-overlay"></div>
+                <div class="video-content">
+                    <div class="creator">
+                        <img src="https://randomuser.me/api/portraits/men/44.jpg" alt="Creador">
+                        <div class="creator-info">
+                            <div class="creator-name">MangandoMongo</div>
+                            <button class="follow-btn">Seguir</button>
+                        </div>
+                    </div>
+                    
+                    <div class="video-info">
+                        <div class="video-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-eye"></i> 187K vistas
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-clock"></i> Hace 5 días
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="side-controls">
+                <div class="control-item">
+                    <div class="profile-circle">
+                        <img src="https://randomuser.me/api/portraits/men/44.jpg" alt="Perfil">
+                    </div>
+                </div>
+                <div class="control-item">
+                    <div class="control-icon" id="like-btn-2">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <span class="control-count">18.7K</span>
+                </div>
+                <div class="control-item">
+                    <div class="control-icon">
+                        <i class="fas fa-comment"></i>
+                    </div>
+                    <span class="control-count">986</span>
+                </div>
+                <div class="control-item">
+                    <div class="control-icon">
+                        <i class="fas fa-share"></i>
+                    </div>
+                    <span class="control-count">623</span>
+                </div>
+                <div class="control-item volume-container">
+                    <div class="control-icon">
+                        <i class="fas fa-volume-up"></i>
+                    </div>
+                    <input type="range" min="0" max="1" step="0.1" value="1" class="volume-slider" id="volume-2">
+                </div>
+            </div>
+            
+            <div class="video-controls">
+                <div class="video-control-btn" id="play-pause-2">
+                    <i class="fas fa-pause"></i>
+                </div>
+                <div class="video-control-btn" id="fullscreen-2">
+                    <i class="fas fa-expand"></i>
+                </div>
+            </div>
+            
+            <div class="current-time" id="time-2">0:15 / 0:30</div>
+        </div>
+        
+        <!-- Video 3 -->
+        <div class="video-container">
+            <div class="video-wrapper">
+                <video class="video-player" autoplay muted loop playsinline>
+                    <source src="videos/video3.mp4" type="video/mp4">
+                </video>
+                <div class="video-overlay"></div>
+                <div class="video-content">
+                    <div class="creator">
+                        <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Creador">
+                        <div class="creator-info">
+                            <div class="creator-name">PampaGames</div>
+                            <button class="follow-btn">Seguir</button>
+                        </div>
+                    </div>
+                    
+                    <div class="video-info">
+                        <div class="video-title">El Pais se va al tacho</div>
+                        <div class="video-description">Ya disponible en todas los kioscos de Argentina</div>
+                        <div class="video-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-eye"></i> 321K vistas
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-clock"></i> Hace 1 semana
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="side-controls">
+                <div class="control-item">
+                    <div class="profile-circle">
+                        <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Perfil">
+                    </div>
+                </div>
+                <div class="control-item">
+                    <div class="control-icon" id="like-btn-3">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <span class="control-count">32.1K</span>
+                </div>
+                <div class="control-item">
+                    <div class="control-icon">
+                        <i class="fas fa-comment"></i>
+                    </div>
+                    <span class="control-count">2.4K</span>
+                </div>
+                <div class="control-item">
+                    <div class="control-icon">
+                        <i class="fas fa-share"></i>
+                    </div>
+                    <span class="control-count">1.1K</span>
+                </div>
+                <div class="control-item volume-container">
+                    <div class="control-icon">
+                        <i class="fas fa-volume-up"></i>
+                    </div>
+                    <input type="range" min="0" max="1" step="0.1" value="1" class="volume-slider" id="volume-3">
+                </div>
+            </div>
+            
+            <div class="video-controls">
+                <div class="video-control-btn" id="play-pause-3">
+                    <i class="fas fa-pause"></i>
+                </div>
+                <div class="video-control-btn" id="fullscreen-3">
+                    <i class="fas fa-expand"></i>
+                </div>
+            </div>
+            
+            <div class="current-time" id="time-3">0:15 / 0:30</div>
+        </div>
+        
+        <!-- Video 4 -->
+        <div class="video-container">
+            <div class="video-wrapper">
+                <video class="video-player" autoplay muted loop playsinline>
+                    <source src="videos/anuncio.mp4" type="video/mp4">
+                </video>
+                <div class="video-overlay"></div>
+                <div class="video-content">
+                    <div class="creator">
+                        <img src="https://static.wikia.nocookie.net/disney/images/4/4b/El_Sr._Patata.png/revision/latest?cb=20180222010739&path-prefix=es" alt="Creador">
+                        <div class="creator-info">
+                            <div class="creator-name">BetPlay Experience</div>
+                            <div class="creator-title">Unete YA</div>
+                            <button class="follow-btn">Seguir</button>
+                        </div>
+                    </div>
+                    
+                    <div class="video-info">
+                        <div class="video-title">El dinero nunca fue tan facil</div>
+                        <div class="video-description">Entra YA a BetPlay Experience y GANA DINERO</div>
+                        <div class="video-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-eye"></i> 153K vistas
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-clock"></i> Hace 3 días
+                            </div>
+                        </div>
+                        <div>
+                            <span class="hashtag">#Dinero</span>
+                            <span class="hashtag">#Casino</span>
+                            <span class="hashtag">#Ganador</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="side-controls">
+                <div class="control-item">
+                    <div class="profile-circle">
+                        <img src="https://randomuser.me/api/portraits/men/22.jpg" alt="Perfil">
+                    </div>
+                </div>
+                <div class="control-item">
+                    <div class="control-icon" id="like-btn-4">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <span class="control-count">15.3K</span>
+                </div>
+                <div class="control-item">
+                    <div class="control-icon">
+                        <i class="fas fa-comment"></i>
+                    </div>
+                    <span class="control-count">754</span>
+                </div>
+                <div class="control-item">
+                    <div class="control-icon">
+                        <i class="fas fa-share"></i>
+                    </div>
+                    <span class="control-count">412</span>
+                </div>
+                <div class="control-item volume-container">
+                    <div class="control-icon">
+                        <i class="fas fa-volume-up"></i>
+                    </div>
+                    <input type="range" min="0" max="1" step="0.1" value="1" class="volume-slider" id="volume-4">
+                </div>
+            </div>
+            
+            <div class="video-controls">
+                <div class="video-control-btn" id="play-pause-4">
+                    <i class="fas fa-pause"></i>
+                </div>
+                <div class="video-control-btn" id="fullscreen-4">
+                    <i class="fas fa-expand"></i>
+                </div>
+            </div>
+            
+            <div class="current-time" id="time-4">0:15 / 0:30</div>
+        </div>
+    </div>
+    
+    <div class="record-btn">
+        <i class="fas fa-plus"></i>
+    </div>
+    
+    <div class="bottom-nav">
+        <div class="nav-item active">
+            <i class="fas fa-home"></i>
+            <span>Inicio</span>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-search"></i>
+            <span>Descubrir</span>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-plus-square"></i>
+            <span>Crear</span>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-inbox"></i>
+            <span>Mensajes</span>
+            <div class="notification">3</div>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-user"></i>
+            <span>Perfil</span>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simular carga inicial
+            setTimeout(function() {
+                document.getElementById('loading').style.opacity = '0';
+                document.getElementById('loading').style.pointerEvents = 'none';
+                document.body.classList.remove('no-scroll');
+            }, 2000);
+            
+            // Configurar scroll infinito
+            const container = document.getElementById('container');
+            const progress = document.getElementById('progress');
+            const videos = document.querySelectorAll('.video-container');
+            let currentVideo = 0;
+            let isScrolling = false;
+            
+            // Actualizar barra de progreso al hacer scroll
+            container.addEventListener('scroll', function() {
+                const scrollPercentage = (container.scrollTop / (container.scrollHeight - container.clientHeight)) * 100;
+                progress.style.width = scrollPercentage + '%';
+                
+                // Calcular video actual
+                const scrollPosition = container.scrollTop + (container.clientHeight / 2);
+                for (let i = 0; i < videos.length; i++) {
+                    const videoTop = videos[i].offsetTop;
+                    const videoBottom = videoTop + videos[i].offsetHeight;
+                    
+                    if (scrollPosition >= videoTop && scrollPosition <= videoBottom) {
+                        if (currentVideo !== i) {
+                            currentVideo = i;
+                            // Pausar todos los videos
+                            document.querySelectorAll('.video-player').forEach(vid => {
+                                vid.pause();
+                            });
+                            // Reproducir el video actual
+                            videos[i].querySelector('.video-player').play();
+                        }
+                        break;
+                    }
+                }
+            });
+            
+            // Control de desplazamiento por video
+            let lastScrollTime = 0;
+            container.addEventListener('scroll', function() {
+                const now = Date.now();
+                if (now - lastScrollTime < 500) return; // Limitar la frecuencia
+                lastScrollTime = now;
+                
+                const scrollPosition = container.scrollTop + (container.clientHeight / 2);
+                const currentVideoTop = videos[currentVideo].offsetTop;
+                const currentVideoHeight = videos[currentVideo].offsetHeight;
+                
+                // Si el scroll está más allá de la mitad del video actual
+                if (scrollPosition > currentVideoTop + currentVideoHeight * 0.7) {
+                    // Ir al siguiente video
+                    if (currentVideo < videos.length - 1) {
+                        videos[currentVideo + 1].scrollIntoView({ behavior: 'smooth' });
+                    }
+                } else if (scrollPosition < currentVideoTop + currentVideoHeight * 0.3) {
+                    // Ir al video anterior
+                    if (currentVideo > 0) {
+                        videos[currentVideo - 1].scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
+            });
+            
+            // Simular carga de más videos al llegar al final
+            container.addEventListener('scroll', function() {
+                if (container.scrollTop + container.clientHeight >= container.scrollHeight - 100) {
+                    // Simular carga de nuevos videos
+                    setTimeout(function() {
+                        if (videos.length < 8) {
+                            // Clonar el primer video para simular carga
+                            const newVideo = videos[0].cloneNode(true);
+                            container.appendChild(newVideo);
+                            
+                            // Actualizar el nuevo video con contenido diferente
+                            const newVideoIndex = videos.length;
+                            newVideo.querySelector('.creator img').src = `https://randomuser.me/api/portraits/${newVideoIndex % 2 === 0 ? 'women' : 'men'}/${Math.floor(Math.random() * 50) + 20}.jpg`;
+                            newVideo.querySelector('.profile-circle img').src = newVideo.querySelector('.creator img').src;
+                            newVideo.querySelector('.video-player source').src = `https://assets.mixkit.co/videos/preview/mixkit-${['stacked-paper', 'waves-in-the-water', 'woman-holding-a-burning-light-bulb', 'wind-turbines'][Math.floor(Math.random() * 4)]}-large.mp4`;
+                            newVideo.querySelector('.video-title').textContent = ['🌱 El poder de las pequeñas acciones', '💧 Agua: El recurso más valioso', '🌳 Protegiendo nuestros bosques', '🚲 Movilidad sostenible para todos'][Math.floor(Math.random() * 4)];
+                            
+                            // Actualizar IDs para los controles
+                            const controls = ['like-btn', 'volume', 'play-pause', 'fullscreen', 'time'];
+                            controls.forEach(control => {
+                                newVideo.querySelector(`#${control}-1`).id = `${control}-${newVideoIndex + 1}`;
+                            });
+                            
+                            // Agregar funcionalidad al nuevo video
+                            setupVideoControls(newVideoIndex + 1);
+                        }
+                    }, 1000);
+                }
+            });
+            
+            // Función para configurar controles de video
+            function setupVideoControls(index) {
+                const videoPlayer = document.querySelector(`.video-container:nth-child(${index}) .video-player`);
+                const playPauseBtn = document.getElementById(`play-pause-${index}`);
+                const fullscreenBtn = document.getElementById(`fullscreen-${index}`);
+                const volumeSlider = document.getElementById(`volume-${index}`);
+                const timeDisplay = document.getElementById(`time-${index}`);
+                
+                if (!videoPlayer || !playPauseBtn) return;
+                
+                // Control de reproducción/pausa
+                playPauseBtn.addEventListener('click', function() {
+                    if (videoPlayer.paused) {
+                        videoPlayer.play();
+                        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                    } else {
+                        videoPlayer.pause();
+                        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                    }
+                });
+                
+// Reemplaza tu código actual de sonido con este:
+const soundToggle = document.getElementById('soundToggle');
+const soundIcon = document.getElementById('soundIcon');
+const bgSound = document.getElementById('bgSound');
+
+// Configuración inicial
+bgSound.volume = 0.3;  // Volumen moderado
+bgSound.muted = true;  // Comienza silenciado
+soundIcon.className = 'fas fa-volume-mute';
+
+// Controlador del botón de sonido
+soundToggle.addEventListener('click', function() {
+    bgSound.muted = !bgSound.muted;
+    
+    // Si estaba silenciado y ahora lo activamos, intentamos reproducir
+    if (!bgSound.muted && bgSound.paused) {
+        bgSound.play().catch(e => {
+            console.log("Reproducción automática bloqueada:", e);
+            // Mostrar mensaje al usuario para que interactúe
+            alert("Por favor haz clic en cualquier parte de la página para habilitar el sonido");
+        });
+    }
+    
+    soundIcon.className = bgSound.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+});
+
+// Permitir reproducción después de interacción del usuario
+document.body.addEventListener('click', function() {
+    if (bgSound.paused && !bgSound.muted) {
+        bgSound.play().then(() => {
+            console.log("Sonido iniciado después de interacción");
+        }).catch(e => {
+            console.log("Error al reproducir:", e);
+        });
+    }
+}, { once: true });  // Solo se necesita una interacción
+                
+                // Control de pantalla completa
+                fullscreenBtn.addEventListener('click', function() {
+                    if (videoPlayer.requestFullscreen) {
+                        videoPlayer.requestFullscreen();
+                    } else if (videoPlayer.mozRequestFullScreen) {
+                        videoPlayer.mozRequestFullScreen();
+                    } else if (videoPlayer.webkitRequestFullscreen) {
+                        videoPlayer.webkitRequestFullscreen();
+                    } else if (videoPlayer.msRequestFullscreen) {
+                        videoPlayer.msRequestFullscreen();
+                    }
+                });
+                
+                // Actualizar tiempo del video
+                videoPlayer.addEventListener('timeupdate', function() {
+                    const currentTime = formatTime(videoPlayer.currentTime);
+                    const duration = formatTime(videoPlayer.duration);
+                    timeDisplay.textContent = `${currentTime} / ${duration}`;
+                });
+            }
+            
+            // Formatear tiempo (mm:ss)
+            function formatTime(seconds) {
+                const min = Math.floor(seconds / 60);
+                const sec = Math.floor(seconds % 60);
+                return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+            }
+            
+            // Configurar controles para los videos iniciales
+            for (let i = 1; i <= 4; i++) {
+                setupVideoControls(i);
+            }
+            
+            // Agregar interacción a los botones de like
+            document.querySelectorAll('.control-icon').forEach(button => {
+                if (button.id.includes('like-btn')) {
+                    button.addEventListener('click', function() {
+                        this.classList.toggle('liked');
+                        if (this.classList.contains('liked')) {
+                            this.style.color = '#ff0050';
+                            // Animación de like
+                            this.animate([
+                                { transform: 'scale(1)', color: '#fff' },
+                                { transform: 'scale(1.3)', color: '#ff0050' },
+                                { transform: 'scale(1)', color: '#ff0050' }
+                            ], {
+                                duration: 600
+                            });
+                            
+                            // Actualizar contador
+                            const countElement = this.nextElementSibling;
+                            const count = parseInt(countElement.textContent.replace(/[^\d]/g, ''));
+                            countElement.textContent = `${(count + 1).toLocaleString()}${countElement.textContent.replace(/\d+/g, '')}`;
+                        } else {
+                            this.style.color = '#fff';
+                            
+                            // Actualizar contador
+                            const countElement = this.nextElementSibling;
+                            const count = parseInt(countElement.textContent.replace(/[^\d]/g, ''));
+                            countElement.textContent = `${(count - 1).toLocaleString()}${countElement.textContent.replace(/\d+/g, '')}`;
+                        }
+                    });
+                }
+            });
+            
+            // Botón de seguir
+            const followButtons = document.querySelectorAll('.follow-btn');
+            followButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    if (this.textContent === 'Seguir') {
+                        this.textContent = 'Siguiendo';
+                        this.classList.add('following');
+                    } else {
+                        this.textContent = 'Seguir';
+                        this.classList.remove('following');
+                    }
+                });
+            });
+            
+            // Hacer que el primer video se reproduzca automáticamente
+            setTimeout(() => {
+                videos[0].querySelector('.video-player').play();
+            }, 2500);
+            
+            // Control de scroll táctil para dispositivos móviles
+            let startY = 0;
+            container.addEventListener('touchstart', e => {
+                startY = e.touches[0].clientY;
+            }, { passive: true });
+            
+            container.addEventListener('touchmove', e => {
+                const currentY = e.touches[0].clientY;
+                const diffY = startY - currentY;
+                
+                // Si el desplazamiento es demasiado rápido, ajustar para el siguiente video
+                if (Math.abs(diffY) > 100) {
+                    if (diffY > 0 && currentVideo < videos.length - 1) {
+                        videos[currentVideo + 1].scrollIntoView({ behavior: 'smooth' });
+                    } else if (diffY < 0 && currentVideo > 0) {
+                        videos[currentVideo - 1].scrollIntoView({ behavior: 'smooth' });
+                    }
+                    startY = currentY;
+                }
+            }, { passive: true });
+        });
+    </script>
+</body>
+</html>
